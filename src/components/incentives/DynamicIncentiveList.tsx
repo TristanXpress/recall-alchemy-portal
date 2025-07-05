@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Delete, MapPin } from "lucide-react";
+import { Edit, Delete, MapPin, Navigation } from "lucide-react";
 import { DynamicIncentive } from "@/types/incentive";
 
 interface DynamicIncentiveListProps {
@@ -28,6 +28,11 @@ const DynamicIncentiveList = ({ incentives, onEdit, onDelete, isDeleting }: Dyna
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const openInGoogleMaps = (coordinates: { lat: number; lng: number }) => {
+    const url = `https://www.google.com/maps/search/?api=1&query=${coordinates.lat},${coordinates.lng}`;
+    window.open(url, '_blank');
   };
 
   if (incentives.length === 0) {
@@ -77,7 +82,7 @@ const DynamicIncentiveList = ({ incentives, onEdit, onDelete, isDeleting }: Dyna
                 {formatAmount(incentive.amount, incentive.type)}
               </Badge>
               <Badge variant="secondary">
-                Dynamic Location
+                Google Maps Location
               </Badge>
             </div>
           </CardHeader>
@@ -87,7 +92,28 @@ const DynamicIncentiveList = ({ incentives, onEdit, onDelete, isDeleting }: Dyna
             {incentive.location && (
               <div className="flex items-center gap-1 text-sm">
                 <MapPin className="h-4 w-4" />
-                <span>Location: {incentive.location}</span>
+                <span>City: {incentive.location}</span>
+              </div>
+            )}
+
+            {incentive.coordinates && incentive.coordinates.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <Navigation className="h-4 w-4" />
+                  <span>Google Maps Coordinates:</span>
+                </div>
+                <div className="bg-muted p-2 rounded text-xs space-y-1">
+                  <div>Lat: {incentive.coordinates[0].lat}</div>
+                  <div>Lng: {incentive.coordinates[0].lng}</div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2 h-6 text-xs"
+                    onClick={() => openInGoogleMaps(incentive.coordinates![0])}
+                  >
+                    View on Google Maps
+                  </Button>
+                </div>
               </div>
             )}
 
