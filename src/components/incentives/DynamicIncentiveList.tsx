@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -76,7 +77,7 @@ const DynamicIncentiveList = ({ incentives, onEdit, onDelete, isDeleting }: Dyna
                 {formatAmount(incentive.amount, incentive.type)}
               </Badge>
               <Badge variant="secondary">
-                {incentive.targetCities.length} Cities
+                Dynamic Location
               </Badge>
             </div>
           </CardHeader>
@@ -86,25 +87,9 @@ const DynamicIncentiveList = ({ incentives, onEdit, onDelete, isDeleting }: Dyna
             {incentive.location && (
               <div className="flex items-center gap-1 text-sm">
                 <MapPin className="h-4 w-4" />
-                <span>Primary: {incentive.location}</span>
+                <span>Location: {incentive.location}</span>
               </div>
             )}
-
-            <div className="space-y-2">
-              <span className="text-xs font-medium">Target Cities:</span>
-              <div className="flex flex-wrap gap-1">
-                {incentive.targetCities.slice(0, 6).map((city) => (
-                  <Badge key={city} variant="outline" className="text-xs">
-                    {city}
-                  </Badge>
-                ))}
-                {incentive.targetCities.length > 6 && (
-                  <Badge variant="outline" className="text-xs">
-                    +{incentive.targetCities.length - 6} more
-                  </Badge>
-                )}
-              </div>
-            </div>
 
             <div className="text-xs text-muted-foreground">
               <div>Start: {formatDate(incentive.startDate)}</div>

@@ -65,6 +65,7 @@ export const useDynamicIncentives = () => {
             is_active: incentive.isActive,
             conditions: incentive.conditions,
             coordinates: incentive.coordinates,
+            target_cities: [], // Empty array to satisfy database schema
           },
         ])
         .select()
@@ -111,6 +112,7 @@ export const useDynamicIncentives = () => {
           is_active: incentive.isActive,
           conditions: incentive.conditions,
           coordinates: incentive.coordinates,
+          target_cities: [], // Empty array to satisfy database schema
           updated_at: new Date().toISOString(),
         })
         .eq("id", incentive.id)
