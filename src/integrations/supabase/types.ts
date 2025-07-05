@@ -9,13 +9,173 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      dynamic_incentives: {
+        Row: {
+          amount: number
+          conditions: string[] | null
+          coordinates: Json | null
+          created_at: string
+          created_by: string | null
+          description: string
+          end_date: string
+          id: string
+          is_active: boolean
+          location: string | null
+          start_date: string
+          target_cities: string[]
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          conditions?: string[] | null
+          coordinates?: Json | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          end_date: string
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          start_date: string
+          target_cities: string[]
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          conditions?: string[] | null
+          coordinates?: Json | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          end_date?: string
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          start_date?: string
+          target_cities?: string[]
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      incentives: {
+        Row: {
+          amount: number
+          conditions: string[] | null
+          created_at: string
+          created_by: string | null
+          description: string
+          end_date: string
+          id: string
+          is_active: boolean
+          location: string | null
+          start_date: string
+          title: string
+          type: string
+          updated_at: string
+          user_type: string
+        }
+        Insert: {
+          amount: number
+          conditions?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          end_date: string
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          start_date: string
+          title: string
+          type: string
+          updated_at?: string
+          user_type: string
+        }
+        Update: {
+          amount?: number
+          conditions?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          end_date?: string
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          start_date?: string
+          title?: string
+          type?: string
+          updated_at?: string
+          user_type?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          role: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          role?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          role?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_dynamic_incentives_by_cities: {
+        Args: { p_cities?: string[] }
+        Returns: {
+          id: string
+          title: string
+          description: string
+          amount: number
+          type: string
+          start_date: string
+          end_date: string
+          target_cities: string[]
+          coordinates: Json
+          conditions: string[]
+        }[]
+      }
+      get_incentives_by_location: {
+        Args: { p_location?: string; p_user_type?: string }
+        Returns: {
+          id: string
+          title: string
+          description: string
+          amount: number
+          type: string
+          start_date: string
+          end_date: string
+          location: string
+          conditions: string[]
+          user_type: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
