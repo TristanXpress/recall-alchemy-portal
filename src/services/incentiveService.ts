@@ -22,11 +22,19 @@ export class IncentiveService {
 
   static async createIncentive(incentive: Omit<Incentive, "id">): Promise<Incentive> {
     console.log("Creating incentive:", incentive);
+    
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error("User must be authenticated to create incentives");
+    }
+
     const { data, error } = await supabase
       .from("incentives")
       .insert([{
         ...transformIncentiveToDb(incentive),
         user_type: incentive.userType || "driver", // Ensure user_type is set
+        created_by: user.id, // Set the created_by field to satisfy RLS
       }])
       .select()
       .single();

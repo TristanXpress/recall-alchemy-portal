@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DynamicIncentive } from "@/types/incentive";
@@ -50,6 +51,13 @@ export const useDynamicIncentives = () => {
   const createDynamicIncentive = useMutation({
     mutationFn: async (incentive: Omit<DynamicIncentive, "id">) => {
       console.log("Creating dynamic incentive:", incentive);
+      
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("User must be authenticated to create dynamic incentives");
+      }
+
       const { data, error } = await supabase
         .from("dynamic_incentives")
         .insert([
@@ -65,6 +73,7 @@ export const useDynamicIncentives = () => {
             conditions: incentive.conditions,
             target_cities: incentive.targetCities,
             coordinates: incentive.coordinates,
+            created_by: user.id, // Set the created_by field to satisfy RLS
           },
         ])
         .select()

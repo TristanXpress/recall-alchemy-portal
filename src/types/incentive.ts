@@ -25,7 +25,7 @@ export const PHILIPPINE_CITIES = [
   "Manila", "Quezon City", "Caloocan", "Las Piñas", "Makati", "Malabon",
   "Mandaluyong", "Marikina", "Muntinlupa", "Navotas", "Parañaque", "Pasay",
   "Pasig", "San Juan", "Taguig", "Valenzuela", "Cebu City", "Davao City",
-  "Antipolo", "Tarlac City", "Zamboanga City", "Cagayan de Oro", "Parañaque",
-  "Las Piñas", "Bacoor", "General Santos", "Butuan", "Angeles", "Olongapo",
+  "Antipolo", "Tarlac City", "Zamboanga City", "Cagayan de Oro",
+  "Bacoor", "General Santos", "Butuan", "Angeles", "Olongapo",
   "Tarlac", "Imus", "Naga", "San Jose del Monte", "Iloilo City", "Lapu-Lapu"
 ];
