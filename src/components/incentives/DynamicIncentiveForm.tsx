@@ -28,7 +28,8 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: Dyna
     location: '',
     isActive: true,
     conditions: [],
-    targetCities: []
+    targetCities: [],
+    userType: 'driver' // Default to driver for dynamic incentives
   });
 
   useEffect(() => {

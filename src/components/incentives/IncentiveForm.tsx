@@ -27,7 +27,8 @@ const IncentiveForm = ({ incentive, onSubmit, onCancel, userType, isLoading = fa
     endDate: '',
     location: '',
     isActive: true,
-    conditions: []
+    conditions: [],
+    userType: userType
   });
 
   useEffect(() => {

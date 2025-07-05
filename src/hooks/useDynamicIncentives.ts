@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DynamicIncentive } from "@/types/incentive";
@@ -18,6 +17,7 @@ const transformDbToDynamicIncentive = (dbRow: any): DynamicIncentive => ({
   conditions: dbRow.conditions || [],
   targetCities: dbRow.target_cities || [],
   coordinates: dbRow.coordinates,
+  userType: 'driver' // Dynamic incentives are typically for drivers
 });
 
 export const useDynamicIncentives = () => {
@@ -216,6 +216,7 @@ export const useDynamicIncentivesByCities = (cities?: string[]) => {
         targetCities: item.target_cities,
         coordinates: item.coordinates,
         conditions: item.conditions || [],
+        userType: 'driver', // Dynamic incentives are typically for drivers
       })) || [];
     },
     enabled: !!cities && cities.length > 0, // Only run query if cities are provided
