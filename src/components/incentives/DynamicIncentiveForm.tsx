@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
 import { DynamicIncentive, PHILIPPINE_CITIES } from "@/types/incentive";
 
 interface DynamicIncentiveFormProps {
@@ -28,7 +28,6 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: Dyna
     location: '',
     isActive: true,
     conditions: [],
-    targetCities: [],
     userType: 'driver' // Default to driver for dynamic incentives
   });
 
@@ -44,20 +43,6 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: Dyna
       onSubmit({ ...formData, id: incentive.id } as DynamicIncentive);
     } else {
       onSubmit(formData);
-    }
-  };
-
-  const handleCityToggle = (city: string, checked: boolean) => {
-    if (checked) {
-      setFormData({
-        ...formData,
-        targetCities: [...formData.targetCities, city]
-      });
-    } else {
-      setFormData({
-        ...formData,
-        targetCities: formData.targetCities.filter(c => c !== city)
-      });
     }
   };
 
@@ -149,10 +134,10 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: Dyna
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="location">Primary Location</Label>
+                <Label htmlFor="location">Location</Label>
                 <Select value={formData.location} onValueChange={(value) => setFormData({ ...formData, location: value })}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select primary city" />
+                    <SelectValue placeholder="Select city" />
                   </SelectTrigger>
                   <SelectContent>
                     {PHILIPPINE_CITIES.map((city) => (
@@ -161,25 +146,6 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: Dyna
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Target Cities (Select multiple cities where this incentive will be available)</Label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto border rounded-md p-3">
-                {PHILIPPINE_CITIES.map((city) => (
-                  <div key={city} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={city}
-                      checked={formData.targetCities.includes(city)}
-                      onCheckedChange={(checked) => handleCityToggle(city, checked as boolean)}
-                    />
-                    <Label htmlFor={city} className="text-sm">{city}</Label>
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Selected cities: {formData.targetCities.length} / {PHILIPPINE_CITIES.length}
-              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

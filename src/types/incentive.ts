@@ -14,7 +14,6 @@ export interface Incentive {
 }
 
 export interface DynamicIncentive extends Incentive {
-  targetCities: string[];
   coordinates?: {
     lat: number;
     lng: number;

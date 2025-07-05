@@ -16,7 +16,6 @@ const transformDbToDynamicIncentive = (dbRow: any): DynamicIncentive => ({
   location: dbRow.location,
   isActive: dbRow.is_active,
   conditions: dbRow.conditions || [],
-  targetCities: dbRow.target_cities || [],
   coordinates: dbRow.coordinates,
   userType: 'driver' // Dynamic incentives are typically for drivers
 });
@@ -51,12 +50,6 @@ export const useDynamicIncentives = () => {
   const createDynamicIncentive = useMutation({
     mutationFn: async (incentive: Omit<DynamicIncentive, "id">) => {
       console.log("Creating dynamic incentive:", incentive);
-      
-      // Get the current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error("User must be authenticated to create dynamic incentives");
-      }
 
       const { data, error } = await supabase
         .from("dynamic_incentives")
@@ -71,9 +64,7 @@ export const useDynamicIncentives = () => {
             location: incentive.location,
             is_active: incentive.isActive,
             conditions: incentive.conditions,
-            target_cities: incentive.targetCities,
             coordinates: incentive.coordinates,
-            created_by: user.id, // Set the created_by field to satisfy RLS
           },
         ])
         .select()
@@ -119,7 +110,6 @@ export const useDynamicIncentives = () => {
           location: incentive.location,
           is_active: incentive.isActive,
           conditions: incentive.conditions,
-          target_cities: incentive.targetCities,
           coordinates: incentive.coordinates,
           updated_at: new Date().toISOString(),
         })
@@ -197,37 +187,34 @@ export const useDynamicIncentives = () => {
   };
 };
 
-// Hook for fetching dynamic incentives by cities (for mobile apps)
-export const useDynamicIncentivesByCities = (cities?: string[]) => {
+// Hook for fetching dynamic incentives by location (for mobile apps)
+export const useDynamicIncentivesByLocation = (location?: string) => {
   return useQuery({
-    queryKey: ["dynamic-incentives", "cities", cities],
+    queryKey: ["dynamic-incentives", "location", location],
     queryFn: async () => {
-      console.log("Fetching dynamic incentives by cities:", cities);
+      console.log("Fetching dynamic incentives by location:", location);
       
-      const { data, error } = await supabase.rpc("get_dynamic_incentives_by_cities", {
-        p_cities: cities,
-      });
+      let query = supabase
+        .from("dynamic_incentives")
+        .select("*")
+        .eq("is_active", true)
+        .lte("start_date", new Date().toISOString())
+        .gte("end_date", new Date().toISOString());
+
+      if (location) {
+        query = query.eq("location", location);
+      }
+
+      const { data, error } = await query.order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Error fetching dynamic incentives by cities:", error);
+        console.error("Error fetching dynamic incentives by location:", error);
         throw error;
       }
 
-      console.log("Fetched dynamic incentives by cities:", data);
-      return data?.map((item: any) => ({
-        id: item.id,
-        title: item.title,
-        description: item.description,
-        amount: item.amount,
-        type: item.type,
-        startDate: item.start_date,
-        endDate: item.end_date,
-        targetCities: item.target_cities,
-        coordinates: item.coordinates,
-        conditions: item.conditions || [],
-        userType: 'driver', // Dynamic incentives are typically for drivers
-      })) || [];
+      console.log("Fetched dynamic incentives by location:", data);
+      return data?.map(transformDbToDynamicIncentive) || [];
     },
-    enabled: !!cities && cities.length > 0, // Only run query if cities are provided
+    enabled: !!location, // Only run query if location is provided
   });
 };
