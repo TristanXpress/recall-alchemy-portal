@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import CustomerIncentives from "@/components/incentives/CustomerIncentives";
 import DriverIncentives from "@/components/incentives/DriverIncentives";
 import DynamicIncentives from "@/components/incentives/DynamicIncentives";
+import IncentiveStats from "@/components/incentives/IncentiveStats";
 
 const Index = () => {
   return (
@@ -14,6 +15,8 @@ const Index = () => {
           <h1 className="text-4xl font-bold mb-4">Incentive Manager</h1>
           <p className="text-xl text-muted-foreground">Manage customer and driver incentives for your app</p>
         </div>
+
+        <IncentiveStats />
 
         <Tabs defaultValue="customers" className="w-full">
           <TabsList className="grid w-full grid-cols-3">

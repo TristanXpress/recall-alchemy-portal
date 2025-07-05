@@ -5,31 +5,39 @@ import { Plus } from "lucide-react";
 import DynamicIncentiveForm from "./DynamicIncentiveForm";
 import DynamicIncentiveList from "./DynamicIncentiveList";
 import { DynamicIncentive } from "@/types/incentive";
+import { useDynamicIncentives } from "@/hooks/useDynamicIncentives";
 
 const DynamicIncentives = () => {
-  const [incentives, setIncentives] = useState<DynamicIncentive[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingIncentive, setEditingIncentive] = useState<DynamicIncentive | null>(null);
+  
+  const {
+    dynamicIncentives,
+    isLoading,
+    createDynamicIncentive,
+    updateDynamicIncentive,
+    deleteDynamicIncentive,
+    isCreating,
+    isUpdating,
+    isDeleting,
+  } = useDynamicIncentives();
 
   const handleCreateIncentive = (incentive: Omit<DynamicIncentive, 'id'>) => {
-    const newIncentive: DynamicIncentive = {
-      ...incentive,
-      id: Date.now().toString(),
-    };
-    setIncentives([...incentives, newIncentive]);
+    console.log("Creating dynamic incentive:", incentive);
+    createDynamicIncentive(incentive);
     setShowForm(false);
   };
 
   const handleEditIncentive = (updatedIncentive: DynamicIncentive) => {
-    setIncentives(incentives.map(inc => 
-      inc.id === updatedIncentive.id ? updatedIncentive : inc
-    ));
+    console.log("Updating dynamic incentive:", updatedIncentive);
+    updateDynamicIncentive(updatedIncentive);
     setEditingIncentive(null);
     setShowForm(false);
   };
 
   const handleDeleteIncentive = (id: string) => {
-    setIncentives(incentives.filter(inc => inc.id !== id));
+    console.log("Deleting dynamic incentive:", id);
+    deleteDynamicIncentive(id);
   };
 
   const startEdit = (incentive: DynamicIncentive) => {
@@ -37,13 +45,17 @@ const DynamicIncentives = () => {
     setShowForm(true);
   };
 
+  if (isLoading) {
+    return <div className="flex justify-center p-8">Loading dynamic incentives...</div>;
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Dynamic Location-Based Incentives ({incentives.length})</h3>
-        <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
+        <h3 className="text-lg font-semibold">Dynamic Location-Based Incentives ({dynamicIncentives.length})</h3>
+        <Button onClick={() => setShowForm(true)} className="flex items-center gap-2" disabled={isCreating}>
           <Plus className="h-4 w-4" />
-          Create Dynamic Incentive
+          {isCreating ? "Creating..." : "Create Dynamic Incentive"}
         </Button>
       </div>
 
@@ -55,13 +67,15 @@ const DynamicIncentives = () => {
             setShowForm(false);
             setEditingIncentive(null);
           }}
+          isLoading={isCreating || isUpdating}
         />
       )}
 
       <DynamicIncentiveList
-        incentives={incentives}
+        incentives={dynamicIncentives}
         onEdit={startEdit}
         onDelete={handleDeleteIncentive}
+        isDeleting={isDeleting}
       />
     </div>
   );
