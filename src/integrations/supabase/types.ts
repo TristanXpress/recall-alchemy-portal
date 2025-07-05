@@ -22,7 +22,7 @@ export type Database = {
           is_active: boolean
           location: string | null
           start_date: string
-          target_cities: string[]
+          target_cities: string[] | null
           title: string
           type: string
           updated_at: string
@@ -39,7 +39,7 @@ export type Database = {
           is_active?: boolean
           location?: string | null
           start_date: string
-          target_cities: string[]
+          target_cities?: string[] | null
           title: string
           type: string
           updated_at?: string
@@ -56,7 +56,7 @@ export type Database = {
           is_active?: boolean
           location?: string | null
           start_date?: string
-          target_cities?: string[]
+          target_cities?: string[] | null
           title?: string
           type?: string
           updated_at?: string
