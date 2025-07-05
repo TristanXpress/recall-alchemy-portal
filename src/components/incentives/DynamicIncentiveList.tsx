@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,9 +8,10 @@ interface DynamicIncentiveListProps {
   incentives: DynamicIncentive[];
   onEdit: (incentive: DynamicIncentive) => void;
   onDelete: (id: string) => void;
+  isDeleting?: boolean;
 }
 
-const DynamicIncentiveList = ({ incentives, onEdit, onDelete }: DynamicIncentiveListProps) => {
+const DynamicIncentiveList = ({ incentives, onEdit, onDelete, isDeleting }: DynamicIncentiveListProps) => {
   const formatAmount = (amount: number, type: string) => {
     if (type === 'percentage') {
       return `${amount}%`;
@@ -53,6 +53,7 @@ const DynamicIncentiveList = ({ incentives, onEdit, onDelete }: DynamicIncentive
                   variant="outline"
                   onClick={() => onEdit(incentive)}
                   className="h-8 w-8 p-0"
+                  disabled={isDeleting}
                 >
                   <Edit className="h-4 w-4" />
                 </Button>
@@ -61,6 +62,7 @@ const DynamicIncentiveList = ({ incentives, onEdit, onDelete }: DynamicIncentive
                   variant="outline"
                   onClick={() => onDelete(incentive.id)}
                   className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                  disabled={isDeleting}
                 >
                   <Delete className="h-4 w-4" />
                 </Button>

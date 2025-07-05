@@ -10,6 +10,7 @@ export interface Incentive {
   location: string;
   isActive: boolean;
   conditions?: string[];
+  userType: 'customer' | 'driver';
 }
 
 export interface DynamicIncentive extends Incentive {

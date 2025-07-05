@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,9 +14,10 @@ interface DynamicIncentiveFormProps {
   incentive?: DynamicIncentive | null;
   onSubmit: (incentive: Omit<DynamicIncentive, 'id'> | DynamicIncentive) => void;
   onCancel: () => void;
+  isLoading?: boolean;
 }
 
-const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel }: DynamicIncentiveFormProps) => {
+const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: DynamicIncentiveFormProps) => {
   const [formData, setFormData] = useState<Omit<DynamicIncentive, 'id'>>({
     title: '',
     description: '',
@@ -241,10 +241,10 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel }: DynamicIncentiv
             </div>
 
             <div className="flex gap-2 pt-4">
-              <Button type="submit" className="flex-1">
-                {incentive ? 'Update' : 'Create'} Dynamic Incentive
+              <Button type="submit" className="flex-1" disabled={isLoading}>
+                {isLoading ? 'Processing...' : (incentive ? 'Update' : 'Create')} Dynamic Incentive
               </Button>
-              <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+              <Button type="button" variant="outline" onClick={onCancel} className="flex-1" disabled={isLoading}>
                 Cancel
               </Button>
             </div>

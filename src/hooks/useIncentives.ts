@@ -16,6 +16,7 @@ const transformDbToIncentive = (dbRow: any): Incentive => ({
   location: dbRow.location,
   isActive: dbRow.is_active,
   conditions: dbRow.conditions || [],
+  userType: dbRow.user_type,
 });
 
 export const useIncentives = () => {
