@@ -4,6 +4,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { DynamicIncentive } from "@/types/incentive";
 import { useToast } from "@/hooks/use-toast";
 
+// Transform database row to frontend type
+const transformDbToDynamicIncentive = (dbRow: any): DynamicIncentive => ({
+  id: dbRow.id,
+  title: dbRow.title,
+  description: dbRow.description,
+  amount: dbRow.amount,
+  type: dbRow.type,
+  startDate: dbRow.start_date,
+  endDate: dbRow.end_date,
+  location: dbRow.location,
+  isActive: dbRow.is_active,
+  conditions: dbRow.conditions || [],
+  targetCities: dbRow.target_cities || [],
+  coordinates: dbRow.coordinates,
+});
+
 export const useDynamicIncentives = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -27,7 +43,7 @@ export const useDynamicIncentives = () => {
       }
 
       console.log("Fetched dynamic incentives:", data);
-      return data as DynamicIncentive[];
+      return data?.map(transformDbToDynamicIncentive) || [];
     },
   });
 
@@ -60,7 +76,7 @@ export const useDynamicIncentives = () => {
       }
 
       console.log("Created dynamic incentive:", data);
-      return data;
+      return transformDbToDynamicIncentive(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dynamic-incentives"] });
@@ -108,7 +124,7 @@ export const useDynamicIncentives = () => {
       }
 
       console.log("Updated dynamic incentive:", data);
-      return data;
+      return transformDbToDynamicIncentive(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dynamic-incentives"] });
@@ -189,7 +205,18 @@ export const useDynamicIncentivesByCities = (cities?: string[]) => {
       }
 
       console.log("Fetched dynamic incentives by cities:", data);
-      return data;
+      return data?.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        amount: item.amount,
+        type: item.type,
+        startDate: item.start_date,
+        endDate: item.end_date,
+        targetCities: item.target_cities,
+        coordinates: item.coordinates,
+        conditions: item.conditions || [],
+      })) || [];
     },
     enabled: !!cities && cities.length > 0, // Only run query if cities are provided
   });

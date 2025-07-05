@@ -4,6 +4,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { Incentive } from "@/types/incentive";
 import { useToast } from "@/hooks/use-toast";
 
+// Transform database row to frontend type
+const transformDbToIncentive = (dbRow: any): Incentive => ({
+  id: dbRow.id,
+  title: dbRow.title,
+  description: dbRow.description,
+  amount: dbRow.amount,
+  type: dbRow.type,
+  startDate: dbRow.start_date,
+  endDate: dbRow.end_date,
+  location: dbRow.location,
+  isActive: dbRow.is_active,
+  conditions: dbRow.conditions || [],
+});
+
 export const useIncentives = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -27,7 +41,7 @@ export const useIncentives = () => {
       }
 
       console.log("Fetched incentives:", data);
-      return data as Incentive[];
+      return data?.map(transformDbToIncentive) || [];
     },
   });
 
@@ -59,7 +73,7 @@ export const useIncentives = () => {
       }
 
       console.log("Created incentive:", data);
-      return data;
+      return transformDbToIncentive(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["incentives"] });
@@ -105,7 +119,7 @@ export const useIncentives = () => {
       }
 
       console.log("Updated incentive:", data);
-      return data;
+      return transformDbToIncentive(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["incentives"] });
@@ -184,7 +198,18 @@ export const useIncentivesByLocation = (location?: string, userType?: "customer"
       }
 
       console.log("Fetched incentives by location:", data);
-      return data;
+      return data?.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        amount: item.amount,
+        type: item.type,
+        startDate: item.start_date,
+        endDate: item.end_date,
+        location: item.location,
+        conditions: item.conditions || [],
+        userType: item.user_type,
+      })) || [];
     },
     enabled: !!userType, // Only run query if userType is provided
   });
