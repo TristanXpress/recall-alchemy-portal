@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Incentive, PHILIPPINE_CITIES } from "@/types/incentive";
+import { getCurrentGMT8DateTime } from "@/utils/dateHelpers";
 
 interface IncentiveFormProps {
   incentive?: Incentive | null;
@@ -23,8 +24,8 @@ const IncentiveForm = ({ incentive, onSubmit, onCancel, userType, isLoading = fa
     description: '',
     amount: 0,
     type: 'fixed',
-    startDate: '',
-    endDate: '',
+    startDate: getCurrentGMT8DateTime(),
+    endDate: getCurrentGMT8DateTime(),
     location: '',
     isActive: true,
     conditions: [],
@@ -34,6 +35,14 @@ const IncentiveForm = ({ incentive, onSubmit, onCancel, userType, isLoading = fa
   useEffect(() => {
     if (incentive) {
       setFormData(incentive);
+    } else {
+      // Reset to current GMT+8 time when creating new incentive
+      const currentTime = getCurrentGMT8DateTime();
+      setFormData(prev => ({
+        ...prev,
+        startDate: currentTime,
+        endDate: currentTime
+      }));
     }
   }, [incentive]);
 
@@ -150,7 +159,7 @@ const IncentiveForm = ({ incentive, onSubmit, onCancel, userType, isLoading = fa
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="startDate">Start Date</Label>
+                <Label htmlFor="startDate">Start Date (GMT+8)</Label>
                 <Input
                   id="startDate"
                   type="datetime-local"
@@ -161,7 +170,7 @@ const IncentiveForm = ({ incentive, onSubmit, onCancel, userType, isLoading = fa
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="endDate">End Date</Label>
+                <Label htmlFor="endDate">End Date (GMT+8)</Label>
                 <Input
                   id="endDate"
                   type="datetime-local"

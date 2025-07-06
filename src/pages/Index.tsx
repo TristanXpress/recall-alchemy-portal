@@ -17,15 +17,6 @@ const Index = () => {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-4">Incentive Manager</h1>
           <p className="text-xl text-muted-foreground mb-6">Manage customer and driver incentives for your app</p>
-          
-          <div className="flex justify-center">
-            <Link to="/api-docs">
-              <Button variant="outline" className="flex items-center space-x-2">
-                <ExternalLink className="h-4 w-4" />
-                <span>View API Documentation</span>
-              </Button>
-            </Link>
-          </div>
         </div>
 
         <IncentiveStats />
