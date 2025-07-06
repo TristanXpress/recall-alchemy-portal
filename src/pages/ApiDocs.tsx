@@ -20,13 +20,6 @@ const ApiDocs = () => {
     });
   };
 
-  // Helper function to get current time with buffer for API examples
-  const getBufferedCurrentTime = () => {
-    const now = new Date();
-    const bufferedNow = new Date(now.getTime() - 60000); // 1 minute buffer
-    return bufferedNow.toISOString();
-  };
-
   const customerApis = [
     {
       title: "Get Customer Incentives by Location",
@@ -40,9 +33,9 @@ const ApiDocs = () => {
     },
     {
       title: "Get All Active Customer Incentives",
-      url: `${baseUrl}/rest/v1/incentives?select=*&is_active=eq.true&user_type=eq.customer&end_date=gte.${getBufferedCurrentTime()}&order=created_at.desc`,
+      url: `${baseUrl}/rest/v1/incentives?select=*&is_active=eq.true&user_type=eq.customer&order=created_at.desc`,
       method: "GET",
-      description: "Get all active customer incentives that haven't expired",
+      description: "Get all active customer incentives",
       body: null
     }
   ];
@@ -61,15 +54,15 @@ const ApiDocs = () => {
     {
       title: "Get All Active Driver Incentives",
       method: "GET",
-      url: `${baseUrl}/rest/v1/incentives?select=*&is_active=eq.true&user_type=eq.driver&end_date=gte.${getBufferedCurrentTime()}&order=created_at.desc`,
-      description: "Get all active driver incentives that haven't expired",
+      url: `${baseUrl}/rest/v1/incentives?select=*&is_active=eq.true&user_type=eq.driver&order=created_at.desc`,
+      description: "Get all active driver incentives",
       body: null
     },
     {
       title: "Get Driver Incentives by Multiple Locations",
       method: "GET",
-      url: `${baseUrl}/rest/v1/incentives?select=*&is_active=eq.true&user_type=eq.driver&location=in.("Manila","Makati","Quezon City")&end_date=gte.${getBufferedCurrentTime()}&order=created_at.desc`,
-      description: "Get driver incentives for multiple locations that haven't expired",
+      url: `${baseUrl}/rest/v1/incentives?select=*&is_active=eq.true&user_type=eq.driver&location=in.("Manila","Makati","Quezon City")&order=created_at.desc`,
+      description: "Get driver incentives for multiple locations",
       body: null
     }
   ];
@@ -87,15 +80,15 @@ const ApiDocs = () => {
     {
       title: "Get All Active Dynamic Incentives",
       method: "GET",
-      url: `${baseUrl}/rest/v1/dynamic_incentives?select=*&is_active=eq.true&end_date=gte.${getBufferedCurrentTime()}&order=created_at.desc`,
-      description: "Get all active dynamic incentives that haven't expired",
+      url: `${baseUrl}/rest/v1/dynamic_incentives?select=*&is_active=eq.true&order=created_at.desc`,
+      description: "Get all active dynamic incentives",
       body: null
     },
     {
       title: "Get Dynamic Incentives by Location",
       method: "GET",
-      url: `${baseUrl}/rest/v1/dynamic_incentives?select=*&is_active=eq.true&location=eq.Taguig&end_date=gte.${getBufferedCurrentTime()}&order=created_at.desc`,
-      description: "Get dynamic incentives for a specific location that haven't expired",
+      url: `${baseUrl}/rest/v1/dynamic_incentives?select=*&is_active=eq.true&location=eq.Taguig&order=created_at.desc`,
+      description: "Get dynamic incentives for a specific location",
       body: null
     }
   ];
@@ -104,8 +97,8 @@ const ApiDocs = () => {
     {
       title: "Get All Active Incentives",
       method: "GET",
-      url: `${baseUrl}/rest/v1/incentives?select=*&is_active=eq.true&end_date=gte.${getBufferedCurrentTime()}&order=created_at.desc`,
-      description: "Get all active incentives regardless of user type that haven't expired",
+      url: `${baseUrl}/rest/v1/incentives?select=*&is_active=eq.true&order=created_at.desc`,
+      description: "Get all active incentives regardless of user type",
       body: null
     },
     {
