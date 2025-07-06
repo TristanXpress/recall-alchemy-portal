@@ -1,6 +1,25 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
+// Type guard to check if coordinates contain geofence data
+const hasGeofence = (coordinates: any): coordinates is { geofence: { type: 'polygon' | 'circle'; coordinates: { lat: number; lng: number }[]; radius?: number } } => {
+  return coordinates && 
+         typeof coordinates === 'object' && 
+         coordinates.geofence && 
+         typeof coordinates.geofence === 'object' &&
+         coordinates.geofence.type &&
+         Array.isArray(coordinates.geofence.coordinates);
+};
+
+// Type guard to check if coordinates is legacy array format
+const isLegacyCoordinates = (coordinates: any): coordinates is { lat: number; lng: number }[] => {
+  return Array.isArray(coordinates) && 
+         coordinates.length > 0 && 
+         coordinates[0] && 
+         typeof coordinates[0].lat === 'number' && 
+         typeof coordinates[0].lng === 'number';
+};
+
 export class DynamicIncentiveApiService {
   
   // Get all active dynamic incentives
@@ -79,26 +98,28 @@ export class DynamicIncentiveApiService {
     // Filter by geofencing or legacy coordinate system
     const filteredData = data?.filter(incentive => {
       // Check if the incentive has geofence data
-      if (incentive.coordinates && typeof incentive.coordinates === 'object' && 
-          incentive.coordinates.geofence && Array.isArray(incentive.coordinates.geofence.coordinates)) {
+      if (incentive.coordinates && hasGeofence(incentive.coordinates)) {
+        const geofence = incentive.coordinates.geofence;
         
-        if (incentive.coordinates.geofence.type === 'polygon') {
-          return this.isPointInPolygon(lat, lng, incentive.coordinates.geofence.coordinates);
-        } else if (incentive.coordinates.geofence.type === 'circle') {
-          const center = incentive.coordinates.geofence.coordinates[0];
-          const radius = incentive.coordinates.geofence.radius || radiusKm;
+        if (geofence.type === 'polygon') {
+          return this.isPointInPolygon(lat, lng, geofence.coordinates);
+        } else if (geofence.type === 'circle') {
+          const center = geofence.coordinates[0];
+          const radius = geofence.radius || radiusKm;
           const distance = this.calculateDistance(lat, lng, center.lat, center.lng);
           return distance <= radius;
         }
       }
 
       // Fallback to legacy coordinate system
-      if (!incentive.coordinates || !Array.isArray(incentive.coordinates)) return false;
-      
-      return incentive.coordinates.some((coord: any) => {
-        const distance = this.calculateDistance(lat, lng, coord.lat, coord.lng);
-        return distance <= radiusKm;
-      });
+      if (incentive.coordinates && isLegacyCoordinates(incentive.coordinates)) {
+        return incentive.coordinates.some((coord: any) => {
+          const distance = this.calculateDistance(lat, lng, coord.lat, coord.lng);
+          return distance <= radiusKm;
+        });
+      }
+
+      return false;
     });
 
     return filteredData || [];
@@ -214,19 +235,19 @@ export class DynamicIncentiveApiService {
     
     return allIncentives.filter(incentive => {
       // Check geofenced areas first
-      if (incentive.coordinates && typeof incentive.coordinates === 'object' && 
-          incentive.coordinates.geofence) {
+      if (incentive.coordinates && hasGeofence(incentive.coordinates)) {
         return this.isWithinGeofencedArea(userLat, userLng, incentive.coordinates.geofence);
       }
 
       // Fallback to legacy coordinate system
-      if (!incentive.coordinates || !Array.isArray(incentive.coordinates)) return false;
-      
-      return incentive.coordinates.some((coord: any) => {
-        const distance = this.calculateDistance(userLat, userLng, coord.lat, coord.lng);
-        return distance <= radiusKm;
-      });
+      if (incentive.coordinates && isLegacyCoordinates(incentive.coordinates)) {
+        return incentive.coordinates.some((coord: any) => {
+          const distance = this.calculateDistance(userLat, userLng, coord.lat, coord.lng);
+          return distance <= radiusKm;
+        });
+      }
+
+      return false;
     });
   }
 }
-
