@@ -7,12 +7,14 @@ export class DynamicIncentiveApiService {
   static async getAllActiveDynamicIncentives() {
     console.log("API: Fetching all active dynamic incentives");
     
+    const now = new Date();
+    const bufferedNow = new Date(now.getTime() - 60000); // 1 minute buffer
+    
     const { data, error } = await supabase
       .from("dynamic_incentives")
       .select("*")
       .eq("is_active", true)
-      .lte("start_date", new Date().toISOString())
-      .gte("end_date", new Date().toISOString())
+      .gte("end_date", bufferedNow.toISOString()) // Use buffered time for end date check
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -20,6 +22,7 @@ export class DynamicIncentiveApiService {
       throw new Error(`Failed to fetch dynamic incentives: ${error.message}`);
     }
 
+    console.log("API: Retrieved active dynamic incentives:", data);
     return data;
   }
 
@@ -43,13 +46,15 @@ export class DynamicIncentiveApiService {
   static async getDynamicIncentivesByLocation(location: string) {
     console.log("API: Fetching dynamic incentives by location", { location });
     
+    const now = new Date();
+    const bufferedNow = new Date(now.getTime() - 60000); // 1 minute buffer
+    
     const { data, error } = await supabase
       .from("dynamic_incentives")
       .select("*")
       .eq("is_active", true)
       .eq("location", location)
-      .lte("start_date", new Date().toISOString())
-      .gte("end_date", new Date().toISOString())
+      .gte("end_date", bufferedNow.toISOString()) // Use buffered time for end date check
       .order("created_at", { ascending: false });
 
     if (error) {
