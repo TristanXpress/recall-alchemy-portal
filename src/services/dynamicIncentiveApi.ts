@@ -1,4 +1,5 @@
 
+
 import { supabase } from "@/integrations/supabase/client";
 
 // Type guard to check if coordinates contain geofence data
@@ -9,15 +10,6 @@ const hasGeofence = (coordinates: any): coordinates is { geofence: { type: 'poly
          typeof coordinates.geofence === 'object' &&
          coordinates.geofence.type &&
          Array.isArray(coordinates.geofence.coordinates);
-};
-
-// Type guard to check if coordinates is legacy array format
-const isLegacyCoordinates = (coordinates: any): coordinates is { lat: number; lng: number }[] => {
-  return Array.isArray(coordinates) && 
-         coordinates.length > 0 && 
-         coordinates[0] && 
-         typeof coordinates[0].lat === 'number' && 
-         typeof coordinates[0].lng === 'number';
 };
 
 export class DynamicIncentiveApiService {
@@ -95,7 +87,7 @@ export class DynamicIncentiveApiService {
       throw new Error(`Failed to fetch dynamic incentives by coordinates: ${error.message}`);
     }
 
-    // Filter by geofencing or legacy coordinate system
+    // Filter by geofencing only
     const filteredData = data?.filter(incentive => {
       // Check if the incentive has geofence data
       if (incentive.coordinates && hasGeofence(incentive.coordinates)) {
@@ -109,14 +101,6 @@ export class DynamicIncentiveApiService {
           const distance = this.calculateDistance(lat, lng, center.lat, center.lng);
           return distance <= radius;
         }
-      }
-
-      // Fallback to legacy coordinate system
-      if (incentive.coordinates && isLegacyCoordinates(incentive.coordinates)) {
-        return incentive.coordinates.some((coord: any) => {
-          const distance = this.calculateDistance(lat, lng, coord.lat, coord.lng);
-          return distance <= radiusKm;
-        });
       }
 
       return false;
@@ -202,19 +186,6 @@ export class DynamicIncentiveApiService {
     return false;
   }
 
-  // Helper: Legacy support - Check if coordinates are within dynamic incentive area
-  static isWithinIncentiveArea(
-    userLat: number,
-    userLng: number,
-    incentiveCoordinates: { lat: number; lng: number }[],
-    radiusKm: number = 1
-  ): boolean {
-    return incentiveCoordinates.some(coord => {
-      const distance = this.calculateDistance(userLat, userLng, coord.lat, coord.lng);
-      return distance <= radiusKm;
-    });
-  }
-
   // Helper: Format currency for display
   static formatCurrency(amount: number) {
     return new Intl.NumberFormat("en-PH", {
@@ -234,20 +205,13 @@ export class DynamicIncentiveApiService {
     const allIncentives = await this.getAllActiveDynamicIncentives();
     
     return allIncentives.filter(incentive => {
-      // Check geofenced areas first
+      // Check geofenced areas only
       if (incentive.coordinates && hasGeofence(incentive.coordinates)) {
         return this.isWithinGeofencedArea(userLat, userLng, incentive.coordinates.geofence);
-      }
-
-      // Fallback to legacy coordinate system
-      if (incentive.coordinates && isLegacyCoordinates(incentive.coordinates)) {
-        return incentive.coordinates.some((coord: any) => {
-          const distance = this.calculateDistance(userLat, userLng, coord.lat, coord.lng);
-          return distance <= radiusKm;
-        });
       }
 
       return false;
     });
   }
 }
+

@@ -1,4 +1,5 @@
 
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,8 +32,10 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: Dyna
     isActive: true,
     conditions: [],
     userType: 'driver',
-    coordinates: undefined,
-    geofence: undefined
+    geofence: {
+      type: 'polygon',
+      coordinates: []
+    }
   });
 
   useEffect(() => {
@@ -57,8 +60,10 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: Dyna
       geofence: geofenceCoordinates ? {
         type: 'polygon',
         coordinates: geofenceCoordinates
-      } : undefined,
-      coordinates: undefined // Clear old point-based coordinates
+      } : {
+        type: 'polygon',
+        coordinates: []
+      }
     });
   };
 
@@ -96,7 +101,7 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: Dyna
   };
 
   const openGeofenceMap = () => {
-    if (formData.geofence?.coordinates) {
+    if (formData.geofence?.coordinates?.length > 0) {
       // Create a URL with polygon coordinates for Google Maps
       const coords = formData.geofence.coordinates;
       const center = coords[Math.floor(coords.length / 2)];
@@ -183,7 +188,7 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: Dyna
               </div>
             </div>
 
-            {formData.geofence && (
+            {formData.geofence && formData.geofence.coordinates.length > 0 && (
               <div className="space-y-3">
                 <Label>Geofence Boundary</Label>
                 <div className="bg-muted p-4 rounded-md space-y-3">
@@ -291,4 +296,5 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: Dyna
 };
 
 export default DynamicIncentiveForm;
+
 

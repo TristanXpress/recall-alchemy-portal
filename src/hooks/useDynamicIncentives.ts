@@ -1,4 +1,5 @@
 
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DynamicIncentive } from "@/types/incentive";
@@ -16,8 +17,10 @@ const transformDbToDynamicIncentive = (dbRow: any): DynamicIncentive => ({
   location: dbRow.location,
   isActive: dbRow.is_active,
   conditions: dbRow.conditions || [],
-  coordinates: dbRow.coordinates?.coordinates || dbRow.coordinates, // Legacy support
-  geofence: dbRow.coordinates?.geofence || undefined, // New geofence support
+  geofence: dbRow.coordinates?.geofence || {
+    type: 'polygon',
+    coordinates: []
+  },
   userType: 'driver' // Dynamic incentives are typically for drivers
 });
 
@@ -54,10 +57,9 @@ export const useDynamicIncentives = () => {
       console.log("Creating dynamic incentive:", incentive);
 
       // Prepare coordinates data structure for database
-      const coordinatesData = incentive.geofence ? {
-        geofence: incentive.geofence,
-        coordinates: incentive.coordinates || [] // Legacy support
-      } : incentive.coordinates;
+      const coordinatesData = {
+        geofence: incentive.geofence
+      };
 
       const { data, error } = await supabase
         .from("dynamic_incentives")
@@ -109,10 +111,9 @@ export const useDynamicIncentives = () => {
       console.log("Updating dynamic incentive:", incentive);
       
       // Prepare coordinates data structure for database
-      const coordinatesData = incentive.geofence ? {
-        geofence: incentive.geofence,
-        coordinates: incentive.coordinates || [] // Legacy support
-      } : incentive.coordinates;
+      const coordinatesData = {
+        geofence: incentive.geofence
+      };
 
       const { data, error } = await supabase
         .from("dynamic_incentives")
@@ -233,4 +234,5 @@ export const useDynamicIncentivesByLocation = (location?: string) => {
     enabled: !!location, // Only run query if location is provided
   });
 };
+
 
