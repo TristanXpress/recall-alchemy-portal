@@ -16,7 +16,8 @@ const transformDbToDynamicIncentive = (dbRow: any): DynamicIncentive => ({
   location: dbRow.location,
   isActive: dbRow.is_active,
   conditions: dbRow.conditions || [],
-  coordinates: dbRow.coordinates,
+  coordinates: dbRow.coordinates?.coordinates || dbRow.coordinates, // Legacy support
+  geofence: dbRow.coordinates?.geofence || undefined, // New geofence support
   userType: 'driver' // Dynamic incentives are typically for drivers
 });
 
@@ -52,6 +53,12 @@ export const useDynamicIncentives = () => {
     mutationFn: async (incentive: Omit<DynamicIncentive, "id">) => {
       console.log("Creating dynamic incentive:", incentive);
 
+      // Prepare coordinates data structure for database
+      const coordinatesData = incentive.geofence ? {
+        geofence: incentive.geofence,
+        coordinates: incentive.coordinates || [] // Legacy support
+      } : incentive.coordinates;
+
       const { data, error } = await supabase
         .from("dynamic_incentives")
         .insert([
@@ -65,7 +72,7 @@ export const useDynamicIncentives = () => {
             location: incentive.location,
             is_active: incentive.isActive,
             conditions: incentive.conditions,
-            coordinates: incentive.coordinates,
+            coordinates: coordinatesData,
             target_cities: [], // Empty array to satisfy database schema
           },
         ])
@@ -84,14 +91,14 @@ export const useDynamicIncentives = () => {
       queryClient.invalidateQueries({ queryKey: ["dynamic-incentives"] });
       toast({
         title: "Success",
-        description: "Dynamic incentive created successfully",
+        description: "Geofenced dynamic incentive created successfully",
       });
     },
     onError: (error) => {
       console.error("Create dynamic incentive error:", error);
       toast({
         title: "Error",
-        description: "Failed to create dynamic incentive",
+        description: "Failed to create geofenced dynamic incentive",
         variant: "destructive",
       });
     },
@@ -100,6 +107,13 @@ export const useDynamicIncentives = () => {
   const updateDynamicIncentive = useMutation({
     mutationFn: async (incentive: DynamicIncentive) => {
       console.log("Updating dynamic incentive:", incentive);
+      
+      // Prepare coordinates data structure for database
+      const coordinatesData = incentive.geofence ? {
+        geofence: incentive.geofence,
+        coordinates: incentive.coordinates || [] // Legacy support
+      } : incentive.coordinates;
+
       const { data, error } = await supabase
         .from("dynamic_incentives")
         .update({
@@ -112,7 +126,7 @@ export const useDynamicIncentives = () => {
           location: incentive.location,
           is_active: incentive.isActive,
           conditions: incentive.conditions,
-          coordinates: incentive.coordinates,
+          coordinates: coordinatesData,
           target_cities: [], // Empty array to satisfy database schema
           updated_at: new Date().toISOString(),
         })
@@ -132,14 +146,14 @@ export const useDynamicIncentives = () => {
       queryClient.invalidateQueries({ queryKey: ["dynamic-incentives"] });
       toast({
         title: "Success",
-        description: "Dynamic incentive updated successfully",
+        description: "Geofenced dynamic incentive updated successfully",
       });
     },
     onError: (error) => {
       console.error("Update dynamic incentive error:", error);
       toast({
         title: "Error",
-        description: "Failed to update dynamic incentive",
+        description: "Failed to update geofenced dynamic incentive",
         variant: "destructive",
       });
     },
@@ -164,14 +178,14 @@ export const useDynamicIncentives = () => {
       queryClient.invalidateQueries({ queryKey: ["dynamic-incentives"] });
       toast({
         title: "Success",
-        description: "Dynamic incentive deleted successfully",
+        description: "Geofenced dynamic incentive deleted successfully",
       });
     },
     onError: (error) => {
       console.error("Delete dynamic incentive error:", error);
       toast({
         title: "Error",
-        description: "Failed to delete dynamic incentive",
+        description: "Failed to delete geofenced dynamic incentive",
         variant: "destructive",
       });
     },
@@ -195,7 +209,7 @@ export const useDynamicIncentivesByLocation = (location?: string) => {
   return useQuery({
     queryKey: ["dynamic-incentives", "location", location],
     queryFn: async () => {
-      console.log("Fetching dynamic incentives by location:", location);
+      console.log("Fetching geofenced dynamic incentives by location:", location);
       
       let query = supabase
         .from("dynamic_incentives")
@@ -213,9 +227,10 @@ export const useDynamicIncentivesByLocation = (location?: string) => {
         throw error;
       }
 
-      console.log("Fetched dynamic incentives by location:", data);
+      console.log("Fetched geofenced dynamic incentives by location:", data);
       return data?.map(transformDbToDynamicIncentive) || [];
     },
     enabled: !!location, // Only run query if location is provided
   });
 };
+

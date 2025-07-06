@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { DynamicIncentive, PHILIPPINE_CITIES, PHILIPPINE_CITY_COORDINATES } from "@/types/incentive";
+import { DynamicIncentive, PHILIPPINE_CITIES, PHILIPPINE_CITY_GEOFENCES } from "@/types/incentive";
 import { getCurrentGMT8DateTime } from "@/utils/dateHelpers";
 
 interface DynamicIncentiveFormProps {
@@ -31,7 +31,8 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: Dyna
     isActive: true,
     conditions: [],
     userType: 'driver',
-    coordinates: undefined
+    coordinates: undefined,
+    geofence: undefined
   });
 
   useEffect(() => {
@@ -49,11 +50,15 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: Dyna
   }, [incentive]);
 
   const handleLocationChange = (selectedLocation: string) => {
-    const coordinates = PHILIPPINE_CITY_COORDINATES[selectedLocation];
+    const geofenceCoordinates = PHILIPPINE_CITY_GEOFENCES[selectedLocation];
     setFormData({
       ...formData,
       location: selectedLocation,
-      coordinates: coordinates || undefined
+      geofence: geofenceCoordinates ? {
+        type: 'polygon',
+        coordinates: geofenceCoordinates
+      } : undefined,
+      coordinates: undefined // Clear old point-based coordinates
     });
   };
 
@@ -90,16 +95,21 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: Dyna
     });
   };
 
-  const openInGoogleMaps = (coordinates: { lat: number; lng: number }) => {
-    const url = `https://www.google.com/maps/search/?api=1&query=${coordinates.lat},${coordinates.lng}`;
-    window.open(url, '_blank');
+  const openGeofenceMap = () => {
+    if (formData.geofence?.coordinates) {
+      // Create a URL with polygon coordinates for Google Maps
+      const coords = formData.geofence.coordinates;
+      const center = coords[Math.floor(coords.length / 2)];
+      const url = `https://www.google.com/maps/search/?api=1&query=${center.lat},${center.lng}`;
+      window.open(url, '_blank');
+    }
   };
 
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle>
-          {incentive ? 'Edit' : 'Create'} Dynamic Location-Based Incentive
+          {incentive ? 'Edit' : 'Create'} Dynamic Location-Based Incentive (Geofenced)
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -112,7 +122,7 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: Dyna
                   id="title"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="e.g., Metro Manila Surge Bonus"
+                  placeholder="e.g., Metro Manila Geofenced Bonus"
                   required
                 />
               </div>
@@ -138,7 +148,7 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: Dyna
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Describe the dynamic incentive..."
+                placeholder="Describe the geofenced dynamic incentive..."
                 rows={3}
                 required
               />
@@ -159,10 +169,10 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: Dyna
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
+                <Label htmlFor="location">Geofenced Location</Label>
                 <Select value={formData.location} onValueChange={handleLocationChange}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select city" />
+                    <SelectValue placeholder="Select city for geofencing" />
                   </SelectTrigger>
                   <SelectContent>
                     {PHILIPPINE_CITIES.map((city) => (
@@ -173,39 +183,34 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: Dyna
               </div>
             </div>
 
-            {formData.coordinates && formData.coordinates.length > 0 && (
+            {formData.geofence && (
               <div className="space-y-3">
-                <Label>Precise Coordinates ({formData.coordinates.length} locations)</Label>
+                <Label>Geofence Boundary</Label>
                 <div className="bg-muted p-4 rounded-md space-y-3">
-                  <div className="text-sm font-medium text-muted-foreground">
-                    All precise coordinates for {formData.location}:
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {formData.coordinates.map((coord, index) => (
-                      <div key={index} className="bg-background p-3 rounded border space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Badge variant="outline" className="text-xs">
-                            Point {index + 1}
-                          </Badge>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="h-6 text-xs px-2"
-                            onClick={() => openInGoogleMaps(coord)}
-                          >
-                            View Map
-                          </Button>
-                        </div>
-                        <div className="text-xs space-y-1">
-                          <div>Lat: {coord.lat.toFixed(6)}</div>
-                          <div>Lng: {coord.lng.toFixed(6)}</div>
-                        </div>
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Badge variant="default" className="mr-2">
+                        Polygon Geofence
+                      </Badge>
+                      <div className="text-sm text-muted-foreground">
+                        {formData.location} city boundary with {formData.geofence.coordinates.length} boundary points
                       </div>
-                    ))}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={openGeofenceMap}
+                    >
+                      View Geofence Area
+                    </Button>
                   </div>
-                  <div className="text-xs text-muted-foreground mt-3">
-                    These precise coordinates cover multiple areas within {formData.location} for comprehensive location-based targeting
+                  <div className="text-xs text-muted-foreground bg-background p-3 rounded border">
+                    <div className="font-medium mb-2">Geofence Details:</div>
+                    <div>• Type: Polygon boundary</div>
+                    <div>• Coverage: Complete {formData.location} city area</div>
+                    <div>• Boundary Points: {formData.geofence.coordinates.length}</div>
+                    <div>• Activation: When user enters the bounded area</div>
                   </div>
                 </div>
               </div>
@@ -272,7 +277,7 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: Dyna
 
             <div className="flex gap-2 pt-4">
               <Button type="submit" className="flex-1" disabled={isLoading}>
-                {isLoading ? 'Processing...' : (incentive ? 'Update' : 'Create')} Dynamic Incentive
+                {isLoading ? 'Processing...' : (incentive ? 'Update' : 'Create')} Geofenced Incentive
               </Button>
               <Button type="button" variant="outline" onClick={onCancel} className="flex-1" disabled={isLoading}>
                 Cancel
@@ -286,3 +291,4 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: Dyna
 };
 
 export default DynamicIncentiveForm;
+

@@ -57,15 +57,14 @@ export class DynamicIncentiveApiService {
     return data;
   }
 
-  // Get dynamic incentives by coordinates (within radius)
+  // Get dynamic incentives by coordinates with geofencing support
   static async getDynamicIncentivesByCoordinates(
     lat: number, 
     lng: number, 
     radiusKm: number = 5
   ) {
-    console.log("API: Fetching dynamic incentives by coordinates", { lat, lng, radiusKm });
+    console.log("API: Fetching dynamic incentives by coordinates with geofencing", { lat, lng, radiusKm });
     
-    // Note: This is a simplified approach. For production, you'd want to use PostGIS for proper geospatial queries
     const { data, error } = await supabase
       .from("dynamic_incentives")
       .select("*")
@@ -77,8 +76,23 @@ export class DynamicIncentiveApiService {
       throw new Error(`Failed to fetch dynamic incentives by coordinates: ${error.message}`);
     }
 
-    // Filter by coordinates in JavaScript (for production, use database-level geospatial queries)
+    // Filter by geofencing or legacy coordinate system
     const filteredData = data?.filter(incentive => {
+      // Check if the incentive has geofence data
+      if (incentive.coordinates && typeof incentive.coordinates === 'object' && 
+          incentive.coordinates.geofence && Array.isArray(incentive.coordinates.geofence.coordinates)) {
+        
+        if (incentive.coordinates.geofence.type === 'polygon') {
+          return this.isPointInPolygon(lat, lng, incentive.coordinates.geofence.coordinates);
+        } else if (incentive.coordinates.geofence.type === 'circle') {
+          const center = incentive.coordinates.geofence.coordinates[0];
+          const radius = incentive.coordinates.geofence.radius || radiusKm;
+          const distance = this.calculateDistance(lat, lng, center.lat, center.lng);
+          return distance <= radius;
+        }
+      }
+
+      // Fallback to legacy coordinate system
       if (!incentive.coordinates || !Array.isArray(incentive.coordinates)) return false;
       
       return incentive.coordinates.some((coord: any) => {
@@ -110,6 +124,22 @@ export class DynamicIncentiveApiService {
     return channel;
   }
 
+  // Helper: Point-in-polygon algorithm for geofencing
+  static isPointInPolygon(lat: number, lng: number, polygon: { lat: number; lng: number }[]): boolean {
+    let inside = false;
+    
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      const xi = polygon[i].lat, yi = polygon[i].lng;
+      const xj = polygon[j].lat, yj = polygon[j].lng;
+      
+      if (((yi > lng) !== (yj > lng)) && (lat < (xj - xi) * (lng - yi) / (yj - yi) + xi)) {
+        inside = !inside;
+      }
+    }
+    
+    return inside;
+  }
+
   // Helper: Calculate distance between two coordinates (Haversine formula)
   static calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
     const R = 6371; // Earth's radius in kilometers
@@ -135,7 +165,23 @@ export class DynamicIncentiveApiService {
     return incentiveAmount;
   }
 
-  // Helper: Check if coordinates are within dynamic incentive area
+  // Helper: Check if coordinates are within geofenced area
+  static isWithinGeofencedArea(
+    userLat: number,
+    userLng: number,
+    geofence: { type: 'polygon' | 'circle'; coordinates: { lat: number; lng: number }[]; radius?: number }
+  ): boolean {
+    if (geofence.type === 'polygon') {
+      return this.isPointInPolygon(userLat, userLng, geofence.coordinates);
+    } else if (geofence.type === 'circle') {
+      const center = geofence.coordinates[0];
+      const distance = this.calculateDistance(userLat, userLng, center.lat, center.lng);
+      return distance <= (geofence.radius || 1);
+    }
+    return false;
+  }
+
+  // Helper: Legacy support - Check if coordinates are within dynamic incentive area
   static isWithinIncentiveArea(
     userLat: number,
     userLng: number,
@@ -156,17 +202,24 @@ export class DynamicIncentiveApiService {
     }).format(amount);
   }
 
-  // Helper: Get nearby dynamic incentives for mobile map view
+  // Helper: Get nearby geofenced dynamic incentives for mobile map view
   static async getNearbyDynamicIncentives(
     userLat: number,
     userLng: number,
     radiusKm: number = 10
   ) {
-    console.log("API: Fetching nearby dynamic incentives", { userLat, userLng, radiusKm });
+    console.log("API: Fetching nearby geofenced dynamic incentives", { userLat, userLng, radiusKm });
     
     const allIncentives = await this.getAllActiveDynamicIncentives();
     
     return allIncentives.filter(incentive => {
+      // Check geofenced areas first
+      if (incentive.coordinates && typeof incentive.coordinates === 'object' && 
+          incentive.coordinates.geofence) {
+        return this.isWithinGeofencedArea(userLat, userLng, incentive.coordinates.geofence);
+      }
+
+      // Fallback to legacy coordinate system
       if (!incentive.coordinates || !Array.isArray(incentive.coordinates)) return false;
       
       return incentive.coordinates.some((coord: any) => {
@@ -176,3 +229,4 @@ export class DynamicIncentiveApiService {
     });
   }
 }
+

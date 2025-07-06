@@ -30,6 +30,13 @@ const DynamicIncentiveList = ({ incentives, onEdit, onDelete, isDeleting }: Dyna
     });
   };
 
+  const openGeofenceMap = (geofence: { coordinates: { lat: number; lng: number }[] }) => {
+    // Open map centered on the geofence area
+    const center = geofence.coordinates[Math.floor(geofence.coordinates.length / 2)];
+    const url = `https://www.google.com/maps/search/?api=1&query=${center.lat},${center.lng}`;
+    window.open(url, '_blank');
+  };
+
   const openInGoogleMaps = (coordinates: { lat: number; lng: number }) => {
     const url = `https://www.google.com/maps/search/?api=1&query=${coordinates.lat},${coordinates.lng}`;
     window.open(url, '_blank');
@@ -39,8 +46,8 @@ const DynamicIncentiveList = ({ incentives, onEdit, onDelete, isDeleting }: Dyna
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-10">
-          <p className="text-muted-foreground">No dynamic incentives created yet.</p>
-          <p className="text-sm text-muted-foreground">Click "Create Dynamic Incentive" to get started.</p>
+          <p className="text-muted-foreground">No geofenced dynamic incentives created yet.</p>
+          <p className="text-sm text-muted-foreground">Click "Create Dynamic Incentive" to get started with geofencing.</p>
         </CardContent>
       </Card>
     );
@@ -81,9 +88,15 @@ const DynamicIncentiveList = ({ incentives, onEdit, onDelete, isDeleting }: Dyna
               <Badge variant="outline">
                 {formatAmount(incentive.amount, incentive.type)}
               </Badge>
-              {incentive.coordinates && (
+              {incentive.geofence && (
+                <Badge variant="default" className="bg-green-600">
+                  🗺️ Geofenced Area
+                </Badge>
+              )}
+              {/* Fallback for old point-based coordinates */}
+              {!incentive.geofence && incentive.coordinates && (
                 <Badge variant="secondary">
-                  {incentive.coordinates.length} Precise Locations
+                  📍 {incentive.coordinates.length} Points
                 </Badge>
               )}
             </div>
@@ -94,15 +107,57 @@ const DynamicIncentiveList = ({ incentives, onEdit, onDelete, isDeleting }: Dyna
             {incentive.location && (
               <div className="flex items-center gap-1 text-sm">
                 <MapPin className="h-4 w-4" />
-                <span>City: {incentive.location}</span>
+                <span>Location: {incentive.location}</span>
               </div>
             )}
 
-            {incentive.coordinates && incentive.coordinates.length > 0 && (
+            {/* Display geofence information */}
+            {incentive.geofence && (
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm">
                   <Navigation className="h-4 w-4" />
-                  <span>Precise Coordinates ({incentive.coordinates.length} locations):</span>
+                  <span>Geofenced Boundary ({incentive.geofence.type})</span>
+                </div>
+                <div className="bg-muted p-3 rounded text-xs space-y-3">
+                  <div className="bg-background p-2 rounded border space-y-1">
+                    <div className="flex items-center justify-between">
+                      <Badge variant="default" className="text-xs h-4 bg-green-600">
+                        Polygon Geofence
+                      </Badge>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-5 w-5 p-0 text-xs"
+                        onClick={() => openGeofenceMap(incentive.geofence!)}
+                        title="View Geofenced Area"
+                      >
+                        🗺️
+                      </Button>
+                    </div>
+                    <div className="text-xs space-y-0.5">
+                      <div>Boundary Points: {incentive.geofence.coordinates.length}</div>
+                      <div>Coverage: Complete {incentive.location} area</div>
+                      <div>Type: Area-based boundary detection</div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full h-6 text-xs"
+                    onClick={() => openGeofenceMap(incentive.geofence!)}
+                  >
+                    View Geofenced Area on Map
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Fallback display for legacy point-based coordinates */}
+            {!incentive.geofence && incentive.coordinates && incentive.coordinates.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <Navigation className="h-4 w-4" />
+                  <span>Legacy Points ({incentive.coordinates.length} locations):</span>
                 </div>
                 <div className="bg-muted p-3 rounded text-xs space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -134,14 +189,6 @@ const DynamicIncentiveList = ({ incentives, onEdit, onDelete, isDeleting }: Dyna
                       +{incentive.coordinates.length - 4} more precise locations
                     </div>
                   )}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full h-6 text-xs"
-                    onClick={() => openInGoogleMaps(incentive.coordinates![0])}
-                  >
-                    View All Locations on Google Maps
-                  </Button>
                 </div>
               </div>
             )}
@@ -169,3 +216,4 @@ const DynamicIncentiveList = ({ incentives, onEdit, onDelete, isDeleting }: Dyna
 };
 
 export default DynamicIncentiveList;
+
