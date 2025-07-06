@@ -5,13 +5,14 @@ import { DynamicIncentiveHelpers } from "@/utils/dynamicIncentiveHelpers";
 import { DynamicIncentiveQueries } from "./dynamicIncentiveQueries";
 
 // Type guard to check if coordinates contain geofence data
-const hasGeofence = (coordinates: any): coordinates is { geofence: { type: 'polygon' | 'circle'; coordinates: { lat: number; lng: number }[]; radius?: number } } => {
+const hasGeofence = (coordinates: any): coordinates is { geofence: { type: 'polygon'; coordinates: { lat: number; lng: number }[] } } => {
   return coordinates && 
          typeof coordinates === 'object' && 
          coordinates.geofence && 
          typeof coordinates.geofence === 'object' &&
-         coordinates.geofence.type &&
-         Array.isArray(coordinates.geofence.coordinates);
+         coordinates.geofence.type === 'polygon' &&
+         Array.isArray(coordinates.geofence.coordinates) &&
+         coordinates.geofence.coordinates.length > 0;
 };
 
 export class DynamicIncentiveApiService {
@@ -37,15 +38,7 @@ export class DynamicIncentiveApiService {
       // Check if the incentive has geofence data
       if (incentive.coordinates && hasGeofence(incentive.coordinates)) {
         const geofence = incentive.coordinates.geofence;
-        
-        if (geofence.type === 'polygon') {
-          return GeofencingUtils.isPointInPolygon(lat, lng, geofence.coordinates);
-        } else if (geofence.type === 'circle') {
-          const center = geofence.coordinates[0];
-          const radius = geofence.radius || radiusKm;
-          const distance = GeofencingUtils.calculateDistance(lat, lng, center.lat, center.lng);
-          return distance <= radius;
-        }
+        return GeofencingUtils.isPointInPolygon(lat, lng, geofence.coordinates);
       }
 
       return false;
@@ -72,6 +65,38 @@ export class DynamicIncentiveApiService {
 
       return false;
     });
+  }
+
+  // Get geofence bounds for map display
+  static getGeofenceBounds(geofence: { coordinates: { lat: number; lng: number }[] }) {
+    if (!geofence.coordinates || geofence.coordinates.length === 0) {
+      return null;
+    }
+
+    const lats = geofence.coordinates.map(coord => coord.lat);
+    const lngs = geofence.coordinates.map(coord => coord.lng);
+
+    return {
+      north: Math.max(...lats),
+      south: Math.min(...lats),
+      east: Math.max(...lngs),
+      west: Math.min(...lngs),
+      center: {
+        lat: (Math.max(...lats) + Math.min(...lats)) / 2,
+        lng: (Math.max(...lngs) + Math.min(...lngs)) / 2
+      }
+    };
+  }
+
+  // Generate Google Maps URL with polygon overlay
+  static generateGeofenceMapUrl(geofence: { coordinates: { lat: number; lng: number }[] }) {
+    const bounds = this.getGeofenceBounds(geofence);
+    if (!bounds) {
+      return null;
+    }
+
+    // Create a URL that shows the center of the geofenced area
+    return `https://www.google.com/maps/search/?api=1&query=${bounds.center.lat},${bounds.center.lng}&zoom=12`;
   }
 
   // Re-export helper methods

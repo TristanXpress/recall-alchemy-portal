@@ -1,5 +1,4 @@
 
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -32,10 +31,19 @@ const DynamicIncentiveList = ({ incentives, onEdit, onDelete, isDeleting }: Dyna
   };
 
   const openGeofenceMap = (geofence: { coordinates: { lat: number; lng: number }[] }) => {
-    // Open map centered on the geofence area
-    const center = geofence.coordinates[Math.floor(geofence.coordinates.length / 2)];
-    const url = `https://www.google.com/maps/search/?api=1&query=${center.lat},${center.lng}`;
-    window.open(url, '_blank');
+    // Calculate the center point of the geofence polygon
+    if (geofence.coordinates && geofence.coordinates.length > 0) {
+      const totalLat = geofence.coordinates.reduce((sum, coord) => sum + coord.lat, 0);
+      const totalLng = geofence.coordinates.reduce((sum, coord) => sum + coord.lng, 0);
+      const centerLat = totalLat / geofence.coordinates.length;
+      const centerLng = totalLng / geofence.coordinates.length;
+      
+      // Create a Google Maps URL with the center point
+      const url = `https://www.google.com/maps/search/?api=1&query=${centerLat},${centerLng}&zoom=12`;
+      window.open(url, '_blank');
+    } else {
+      console.error('No coordinates available for geofence');
+    }
   };
 
   if (incentives.length === 0) {
@@ -161,5 +169,3 @@ const DynamicIncentiveList = ({ incentives, onEdit, onDelete, isDeleting }: Dyna
 };
 
 export default DynamicIncentiveList;
-
-

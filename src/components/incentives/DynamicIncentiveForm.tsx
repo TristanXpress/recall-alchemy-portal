@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { DynamicIncentive, PHILIPPINE_CITIES, PHILIPPINE_CITY_GEOFENCES } from "@/types/incentive";
+import { DynamicIncentiveApiService } from "@/services/dynamicIncentiveApi";
 import { getCurrentGMT8DateTime } from "@/utils/dateHelpers";
 
 interface DynamicIncentiveFormProps {
@@ -102,11 +101,10 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: Dyna
 
   const openGeofenceMap = () => {
     if (formData.geofence?.coordinates?.length > 0) {
-      // Create a URL with polygon coordinates for Google Maps
-      const coords = formData.geofence.coordinates;
-      const center = coords[Math.floor(coords.length / 2)];
-      const url = `https://www.google.com/maps/search/?api=1&query=${center.lat},${center.lng}`;
-      window.open(url, '_blank');
+      const mapUrl = DynamicIncentiveApiService.generateGeofenceMapUrl(formData.geofence);
+      if (mapUrl) {
+        window.open(mapUrl, '_blank');
+      }
     }
   };
 
@@ -296,5 +294,3 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: Dyna
 };
 
 export default DynamicIncentiveForm;
-
-
