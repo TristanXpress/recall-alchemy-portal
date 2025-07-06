@@ -81,9 +81,11 @@ const DynamicIncentiveList = ({ incentives, onEdit, onDelete, isDeleting }: Dyna
               <Badge variant="outline">
                 {formatAmount(incentive.amount, incentive.type)}
               </Badge>
-              <Badge variant="secondary">
-                Google Maps Location
-              </Badge>
+              {incentive.coordinates && (
+                <Badge variant="secondary">
+                  {incentive.coordinates.length} Precise Locations
+                </Badge>
+              )}
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -97,21 +99,48 @@ const DynamicIncentiveList = ({ incentives, onEdit, onDelete, isDeleting }: Dyna
             )}
 
             {incentive.coordinates && incentive.coordinates.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm">
                   <Navigation className="h-4 w-4" />
-                  <span>Google Maps Coordinates:</span>
+                  <span>Precise Coordinates ({incentive.coordinates.length} locations):</span>
                 </div>
-                <div className="bg-muted p-2 rounded text-xs space-y-1">
-                  <div>Lat: {incentive.coordinates[0].lat}</div>
-                  <div>Lng: {incentive.coordinates[0].lng}</div>
+                <div className="bg-muted p-3 rounded text-xs space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {incentive.coordinates.slice(0, 4).map((coord, index) => (
+                      <div key={index} className="bg-background p-2 rounded border space-y-1">
+                        <div className="flex items-center justify-between">
+                          <Badge variant="outline" className="text-xs h-4">
+                            Point {index + 1}
+                          </Badge>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-5 w-5 p-0 text-xs"
+                            onClick={() => openInGoogleMaps(coord)}
+                            title="View on Google Maps"
+                          >
+                            📍
+                          </Button>
+                        </div>
+                        <div className="text-xs space-y-0.5">
+                          <div>Lat: {coord.lat.toFixed(4)}</div>
+                          <div>Lng: {coord.lng.toFixed(4)}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {incentive.coordinates.length > 4 && (
+                    <div className="text-center text-muted-foreground">
+                      +{incentive.coordinates.length - 4} more precise locations
+                    </div>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"
-                    className="mt-2 h-6 text-xs"
+                    className="w-full h-6 text-xs"
                     onClick={() => openInGoogleMaps(incentive.coordinates![0])}
                   >
-                    View on Google Maps
+                    View All Locations on Google Maps
                   </Button>
                 </div>
               </div>

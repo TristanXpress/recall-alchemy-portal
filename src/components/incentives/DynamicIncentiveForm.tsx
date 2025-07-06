@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { DynamicIncentive, PHILIPPINE_CITIES, PHILIPPINE_CITY_COORDINATES } from "@/types/incentive";
 import { getCurrentGMT8DateTime } from "@/utils/dateHelpers";
 
@@ -51,7 +53,7 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: Dyna
     setFormData({
       ...formData,
       location: selectedLocation,
-      coordinates: coordinates ? [coordinates] : undefined
+      coordinates: coordinates || undefined
     });
   };
 
@@ -86,6 +88,11 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: Dyna
       ...formData,
       conditions: newConditions
     });
+  };
+
+  const openInGoogleMaps = (coordinates: { lat: number; lng: number }) => {
+    const url = `https://www.google.com/maps/search/?api=1&query=${coordinates.lat},${coordinates.lng}`;
+    window.open(url, '_blank');
   };
 
   return (
@@ -167,13 +174,38 @@ const DynamicIncentiveForm = ({ incentive, onSubmit, onCancel, isLoading }: Dyna
             </div>
 
             {formData.coordinates && formData.coordinates.length > 0 && (
-              <div className="space-y-2">
-                <Label>Coordinates (Google Maps)</Label>
-                <div className="bg-muted p-3 rounded-md text-sm">
-                  <div>Latitude: {formData.coordinates[0].lat}</div>
-                  <div>Longitude: {formData.coordinates[0].lng}</div>
-                  <div className="text-muted-foreground mt-1">
-                    These coordinates will be used for location-based targeting
+              <div className="space-y-3">
+                <Label>Precise Coordinates ({formData.coordinates.length} locations)</Label>
+                <div className="bg-muted p-4 rounded-md space-y-3">
+                  <div className="text-sm font-medium text-muted-foreground">
+                    All precise coordinates for {formData.location}:
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {formData.coordinates.map((coord, index) => (
+                      <div key={index} className="bg-background p-3 rounded border space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Badge variant="outline" className="text-xs">
+                            Point {index + 1}
+                          </Badge>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-6 text-xs px-2"
+                            onClick={() => openInGoogleMaps(coord)}
+                          >
+                            View Map
+                          </Button>
+                        </div>
+                        <div className="text-xs space-y-1">
+                          <div>Lat: {coord.lat.toFixed(6)}</div>
+                          <div>Lng: {coord.lng.toFixed(6)}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-3">
+                    These precise coordinates cover multiple areas within {formData.location} for comprehensive location-based targeting
                   </div>
                 </div>
               </div>
