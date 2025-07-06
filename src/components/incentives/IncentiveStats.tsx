@@ -12,7 +12,9 @@ const IncentiveStats = () => {
   const isIncentiveActive = (incentive: any) => {
     const now = new Date();
     const endDate = new Date(incentive.endDate);
-    return incentive.isActive && endDate > now;
+    // Add a small buffer to account for timezone differences and processing delays
+    const bufferedNow = new Date(now.getTime() - 60000); // 1 minute buffer
+    return incentive.isActive && endDate > bufferedNow;
   };
 
   // Filter incentives by user type and active status (including time check)

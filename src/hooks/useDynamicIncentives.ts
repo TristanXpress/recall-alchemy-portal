@@ -23,7 +23,9 @@ const transformDbToDynamicIncentive = (dbRow: any): DynamicIncentive => ({
 const isIncentiveCurrentlyActive = (dbRow: any): boolean => {
   const now = new Date();
   const endDate = new Date(dbRow.end_date);
-  return dbRow.is_active && endDate > now;
+  // Add a small buffer to account for timezone differences and processing delays
+  const bufferedNow = new Date(now.getTime() - 60000); // 1 minute buffer
+  return dbRow.is_active && endDate > bufferedNow;
 };
 
 export const useDynamicIncentives = () => {

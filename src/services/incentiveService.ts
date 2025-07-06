@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Incentive } from "@/types/incentive";
 import { transformDbToIncentive, transformIncentiveToDb, transformIncentiveForUpdate } from "@/utils/incentiveTransformers";
@@ -8,7 +7,9 @@ export class IncentiveService {
   private static isIncentiveCurrentlyActive(incentive: any): boolean {
     const now = new Date();
     const endDate = new Date(incentive.end_date);
-    return incentive.is_active && endDate > now;
+    // Add a small buffer to account for timezone differences and processing delays
+    const bufferedNow = new Date(now.getTime() - 60000); // 1 minute buffer
+    return incentive.is_active && endDate > bufferedNow;
   }
 
   static async fetchIncentives(): Promise<Incentive[]> {
@@ -98,7 +99,8 @@ export class IncentiveService {
     const activeIncentives = data?.filter((item: any) => {
       const now = new Date();
       const endDate = new Date(item.end_date);
-      return endDate > now;
+      const bufferedNow = new Date(now.getTime() - 60000); // 1 minute buffer
+      return endDate > bufferedNow;
     }) || [];
 
     return activeIncentives.map((item: any) => ({
