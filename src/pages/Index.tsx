@@ -2,6 +2,9 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
 import CustomerIncentives from "@/components/incentives/CustomerIncentives";
 import DriverIncentives from "@/components/incentives/DriverIncentives";
 import DynamicIncentives from "@/components/incentives/DynamicIncentives";
@@ -13,7 +16,16 @@ const Index = () => {
       <div className="container mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-4">Incentive Manager</h1>
-          <p className="text-xl text-muted-foreground">Manage customer and driver incentives for your app</p>
+          <p className="text-xl text-muted-foreground mb-6">Manage customer and driver incentives for your app</p>
+          
+          <div className="flex justify-center">
+            <Link to="/api-docs">
+              <Button variant="outline" className="flex items-center space-x-2">
+                <ExternalLink className="h-4 w-4" />
+                <span>View API Documentation</span>
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <IncentiveStats />
