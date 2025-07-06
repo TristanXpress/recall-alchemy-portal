@@ -8,14 +8,28 @@ const IncentiveStats = () => {
   const { incentives } = useIncentives();
   const { dynamicIncentives } = useDynamicIncentives();
 
-  // Filter incentives by user type
-  const customerIncentives = incentives.filter(inc => inc.userType === 'customer');
-  const driverIncentives = incentives.filter(inc => inc.userType === 'driver');
+  // Helper function to check if incentive is currently active and not expired
+  const isIncentiveActive = (incentive: any) => {
+    const now = new Date();
+    const endDate = new Date(incentive.endDate);
+    return incentive.isActive && endDate > now;
+  };
 
-  // Calculate totals
-  const customerTotal = customerIncentives.reduce((sum, inc) => sum + inc.amount, 0);
-  const driverTotal = driverIncentives.reduce((sum, inc) => sum + inc.amount, 0);
-  const dynamicTotal = dynamicIncentives.reduce((sum, inc) => sum + inc.amount, 0);
+  // Filter incentives by user type and active status (including time check)
+  const activeCustomerIncentives = incentives.filter(inc => 
+    inc.userType === 'customer' && isIncentiveActive(inc)
+  );
+  const activeDriverIncentives = incentives.filter(inc => 
+    inc.userType === 'driver' && isIncentiveActive(inc)
+  );
+  const activeDynamicIncentives = dynamicIncentives.filter(inc => 
+    isIncentiveActive(inc)
+  );
+
+  // Calculate totals only for active, non-expired incentives
+  const customerTotal = activeCustomerIncentives.reduce((sum, inc) => sum + inc.amount, 0);
+  const driverTotal = activeDriverIncentives.reduce((sum, inc) => sum + inc.amount, 0);
+  const dynamicTotal = activeDynamicIncentives.reduce((sum, inc) => sum + inc.amount, 0);
 
   const formatAmount = (amount: number) => {
     return `₱${amount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
@@ -24,28 +38,28 @@ const IncentiveStats = () => {
   const stats = [
     {
       title: "Customer Incentives",
-      count: customerIncentives.length,
+      count: activeCustomerIncentives.length,
       total: customerTotal,
       icon: Users,
       color: "text-blue-600",
     },
     {
       title: "Driver Incentives", 
-      count: driverIncentives.length,
+      count: activeDriverIncentives.length,
       total: driverTotal,
       icon: Car,
       color: "text-green-600",
     },
     {
       title: "Dynamic Incentives",
-      count: dynamicIncentives.length,
+      count: activeDynamicIncentives.length,
       total: dynamicTotal,
       icon: MapPin,
       color: "text-purple-600",
     },
     {
       title: "Total Value",
-      count: customerIncentives.length + driverIncentives.length + dynamicIncentives.length,
+      count: activeCustomerIncentives.length + activeDriverIncentives.length + activeDynamicIncentives.length,
       total: customerTotal + driverTotal + dynamicTotal,
       icon: TrendingUp,
       color: "text-orange-600",

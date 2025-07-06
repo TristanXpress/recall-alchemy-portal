@@ -4,6 +4,13 @@ import { Incentive } from "@/types/incentive";
 import { transformDbToIncentive, transformIncentiveToDb, transformIncentiveForUpdate } from "@/utils/incentiveTransformers";
 
 export class IncentiveService {
+  // Helper function to check if incentive is active and not expired
+  private static isIncentiveCurrentlyActive(incentive: any): boolean {
+    const now = new Date();
+    const endDate = new Date(incentive.end_date);
+    return incentive.is_active && endDate > now;
+  }
+
   static async fetchIncentives(): Promise<Incentive[]> {
     console.log("Fetching incentives...");
     const { data, error } = await supabase
@@ -17,7 +24,9 @@ export class IncentiveService {
     }
 
     console.log("Fetched incentives:", data);
-    return data?.map(transformDbToIncentive) || [];
+    // Filter out expired incentives and transform to frontend format
+    const activeIncentives = data?.filter(this.isIncentiveCurrentlyActive) || [];
+    return activeIncentives.map(transformDbToIncentive);
   }
 
   static async createIncentive(incentive: Omit<Incentive, "id">): Promise<Incentive> {
@@ -85,7 +94,14 @@ export class IncentiveService {
     }
 
     console.log("Fetched incentives by location:", data);
-    return data?.map((item: any) => ({
+    // The database function already filters by date, but we double-check here
+    const activeIncentives = data?.filter((item: any) => {
+      const now = new Date();
+      const endDate = new Date(item.end_date);
+      return endDate > now;
+    }) || [];
+
+    return activeIncentives.map((item: any) => ({
       id: item.id,
       title: item.title,
       description: item.description,
@@ -96,6 +112,6 @@ export class IncentiveService {
       location: item.location,
       conditions: item.conditions || [],
       userType: item.user_type,
-    })) || [];
+    }));
   }
 }

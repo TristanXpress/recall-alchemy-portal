@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DynamicIncentive } from "@/types/incentive";
@@ -19,6 +18,13 @@ const transformDbToDynamicIncentive = (dbRow: any): DynamicIncentive => ({
   coordinates: dbRow.coordinates,
   userType: 'driver' // Dynamic incentives are typically for drivers
 });
+
+// Helper function to check if incentive is active and not expired
+const isIncentiveCurrentlyActive = (dbRow: any): boolean => {
+  const now = new Date();
+  const endDate = new Date(dbRow.end_date);
+  return dbRow.is_active && endDate > now;
+};
 
 export const useDynamicIncentives = () => {
   const { toast } = useToast();
@@ -43,7 +49,9 @@ export const useDynamicIncentives = () => {
       }
 
       console.log("Fetched dynamic incentives:", data);
-      return data?.map(transformDbToDynamicIncentive) || [];
+      // Filter out expired incentives and transform to frontend format
+      const activeIncentives = data?.filter(isIncentiveCurrentlyActive) || [];
+      return activeIncentives.map(transformDbToDynamicIncentive);
     },
   });
 
@@ -215,7 +223,9 @@ export const useDynamicIncentivesByLocation = (location?: string) => {
       }
 
       console.log("Fetched dynamic incentives by location:", data);
-      return data?.map(transformDbToDynamicIncentive) || [];
+      // Additional client-side filtering for expired incentives
+      const activeIncentives = data?.filter(isIncentiveCurrentlyActive) || [];
+      return activeIncentives.map(transformDbToDynamicIncentive);
     },
     enabled: !!location, // Only run query if location is provided
   });
