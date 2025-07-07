@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Incentive } from "@/types/incentive";
 import { transformDbToIncentive, transformIncentiveToDb, transformIncentiveForUpdate } from "@/utils/incentiveTransformers";
@@ -6,10 +7,21 @@ export class IncentiveService {
   // Helper function to check if incentive is active and not expired
   private static isIncentiveCurrentlyActive(incentive: any): boolean {
     const now = new Date();
+    const startDate = new Date(incentive.start_date);
     const endDate = new Date(incentive.end_date);
-    // Add a small buffer to account for timezone differences and processing delays
-    const bufferedNow = new Date(now.getTime() - 60000); // 1 minute buffer
-    return incentive.is_active && endDate > bufferedNow;
+    
+    console.log("Checking incentive activity:", {
+      id: incentive.id,
+      title: incentive.title,
+      now: now.toISOString(),
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      isActive: incentive.is_active,
+      isWithinDateRange: now >= startDate && now <= endDate
+    });
+    
+    // Check if incentive is marked as active and within date range
+    return incentive.is_active && now >= startDate && now <= endDate;
   }
 
   static async fetchIncentives(): Promise<Incentive[]> {
@@ -25,9 +37,8 @@ export class IncentiveService {
     }
 
     console.log("Fetched incentives:", data);
-    // Filter out expired incentives and transform to frontend format
-    const activeIncentives = data?.filter(this.isIncentiveCurrentlyActive) || [];
-    return activeIncentives.map(transformDbToIncentive);
+    // Don't filter here - let the UI decide what to show
+    return data?.map(transformDbToIncentive) || [];
   }
 
   static async createIncentive(incentive: Omit<Incentive, "id">): Promise<Incentive> {
@@ -95,15 +106,8 @@ export class IncentiveService {
     }
 
     console.log("Fetched incentives by location:", data);
-    // The database function already filters by date, but we double-check here
-    const activeIncentives = data?.filter((item: any) => {
-      const now = new Date();
-      const endDate = new Date(item.end_date);
-      const bufferedNow = new Date(now.getTime() - 60000); // 1 minute buffer
-      return endDate > bufferedNow;
-    }) || [];
-
-    return activeIncentives.map((item: any) => ({
+    
+    return data?.map((item: any) => ({
       id: item.id,
       title: item.title,
       description: item.description,
@@ -114,6 +118,6 @@ export class IncentiveService {
       location: item.location,
       conditions: item.conditions || [],
       userType: item.user_type,
-    }));
+    })) || [];
   }
 }
