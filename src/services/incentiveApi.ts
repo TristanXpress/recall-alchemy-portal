@@ -40,7 +40,7 @@ export class IncentiveApiService {
     return data;
   }
 
-  // Get all active incentives (public endpoint)
+  // Get all active incentives (no strict date filtering)
   static async getAllActiveIncentives() {
     console.log("API: Fetching all active incentives");
     
@@ -48,8 +48,6 @@ export class IncentiveApiService {
       .from("incentives")
       .select("*")
       .eq("is_active", true)
-      .lte("start_date", new Date().toISOString())
-      .gte("end_date", new Date().toISOString())
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -60,7 +58,7 @@ export class IncentiveApiService {
     return data;
   }
 
-  // Get all active dynamic incentives (public endpoint)
+  // Get all active dynamic incentives (no strict date filtering)
   static async getAllActiveDynamicIncentives() {
     console.log("API: Fetching all active dynamic incentives");
     
@@ -68,8 +66,6 @@ export class IncentiveApiService {
       .from("dynamic_incentives")
       .select("*")
       .eq("is_active", true)
-      .lte("start_date", new Date().toISOString())
-      .gte("end_date", new Date().toISOString())
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -135,7 +131,7 @@ export const MobileAppHelpers = {
     }).format(amount);
   },
 
-  // Check if incentive is currently active
+  // Check if incentive is currently active (more lenient check)
   isIncentiveActive: (startDate: string, endDate: string) => {
     const now = new Date();
     const start = new Date(startDate);

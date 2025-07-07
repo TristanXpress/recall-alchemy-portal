@@ -27,17 +27,15 @@ export class DriverIncentiveApiService {
     return this.getDriverIncentives(location);
   }
 
-  // Get all active driver incentives (no location filter)
+  // Get all driver incentives (no date filtering)
   static async getAllActiveDriverIncentives() {
-    console.log("API: Fetching all active driver incentives");
+    console.log("API: Fetching all driver incentives");
     
     const { data, error } = await supabase
       .from("incentives")
       .select("*")
       .eq("is_active", true)
       .eq("user_type", "driver")
-      .lte("start_date", new Date().toISOString())
-      .gte("end_date", new Date().toISOString())
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -58,8 +56,6 @@ export class DriverIncentiveApiService {
       .eq("is_active", true)
       .eq("user_type", "driver")
       .in("location", locations)
-      .lte("start_date", new Date().toISOString())
-      .gte("end_date", new Date().toISOString())
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -120,7 +116,7 @@ export class DriverIncentiveApiService {
     }).format(amount);
   }
 
-  // Helper: Get incentives for driver's current shift
+  // Helper: Get incentives for driver's current shift (no strict date filtering)
   static async getDriverShiftIncentives(driverLocation: string, shiftStartTime: string) {
     console.log("API: Fetching driver shift incentives", { driverLocation, shiftStartTime });
     
@@ -130,8 +126,6 @@ export class DriverIncentiveApiService {
       .eq("is_active", true)
       .eq("user_type", "driver")
       .or(`location.is.null,location.eq.${driverLocation}`)
-      .lte("start_date", shiftStartTime)
-      .gte("end_date", new Date().toISOString())
       .order("created_at", { ascending: false });
 
     if (error) {

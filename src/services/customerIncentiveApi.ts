@@ -27,17 +27,15 @@ export class CustomerIncentiveApiService {
     return this.getCustomerIncentives(location);
   }
 
-  // Get all active customer incentives (no location filter)
+  // Get all customer incentives (no date filtering)
   static async getAllActiveCustomerIncentives() {
-    console.log("API: Fetching all active customer incentives");
+    console.log("API: Fetching all customer incentives");
     
     const { data, error } = await supabase
       .from("incentives")
       .select("*")
       .eq("is_active", true)
       .eq("user_type", "customer")
-      .lte("start_date", new Date().toISOString())
-      .gte("end_date", new Date().toISOString())
       .order("created_at", { ascending: false });
 
     if (error) {

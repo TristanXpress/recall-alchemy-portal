@@ -4,26 +4,6 @@ import { Incentive } from "@/types/incentive";
 import { transformDbToIncentive, transformIncentiveToDb, transformIncentiveForUpdate } from "@/utils/incentiveTransformers";
 
 export class IncentiveService {
-  // Helper function to check if incentive is active and not expired
-  private static isIncentiveCurrentlyActive(incentive: any): boolean {
-    const now = new Date();
-    const startDate = new Date(incentive.start_date);
-    const endDate = new Date(incentive.end_date);
-    
-    console.log("Checking incentive activity:", {
-      id: incentive.id,
-      title: incentive.title,
-      now: now.toISOString(),
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-      isActive: incentive.is_active,
-      isWithinDateRange: now >= startDate && now <= endDate
-    });
-    
-    // Check if incentive is marked as active and within date range
-    return incentive.is_active && now >= startDate && now <= endDate;
-  }
-
   static async fetchIncentives(): Promise<Incentive[]> {
     console.log("Fetching incentives...");
     const { data, error } = await supabase
@@ -37,7 +17,6 @@ export class IncentiveService {
     }
 
     console.log("Fetched incentives:", data);
-    // Don't filter here - let the UI decide what to show
     return data?.map(transformDbToIncentive) || [];
   }
 
